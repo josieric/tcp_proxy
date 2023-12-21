@@ -100,20 +100,37 @@ sub close_connection {
 
 sub client_allowed {
     my $client_ip = shift;
-    return grep { $_ eq $client_ip || $_ eq 'all' } @allowed_ips; }
+    return grep { $_ eq $client_ip || $_ eq 'all' } @allowed_ips;
+}
 
-if (@ARGV != 2) {
-  print "Usage:\n$0 <local port> <remote_host:remote_port>\n$0 <local_ip:local port> <remote_host:remote_port>\n";
+sub find_port {
+   my ($host, $port) = @_;
+   my $encore=1;
+   while($encore) {
+      my $server = IO::Socket::INET->new(LocalAddr => $host, LocalPort => $port, ReuseAddr => 1);
+      if (!defined $server) {
+         $port++;
+      }
+      else {
+	 $encore=0;
+	 $server->close;
+      }
+   }
+   return $port
+}
+
+if ($#ARGV lt 0 || $#ARGV gt 1) {
+  print "Usage:\n$0 <local port> <remote_host:remote_port>\n$0 <local_ip:local port> <remote_host:remote_port>\n$0 <remote_host:remote_port>\n";
   print "export SSL=1 to binding with a secure socket.\n";
   exit 12;
 }
 
-my ($local_host, $local_port) = split ':', shift();
+my ($local_host, $local_port) = split ':', shift() if ($#ARGV eq 2);
 my ($remote_host, $remote_port) = split ':', shift();
 
 if (! defined $local_port) {
-  $local_port=$local_host;
   $local_host="0.0.0.0";
+  $local_port=find_port($local_host,4096);
 }
 $local_host="0.0.0.0" if $local_host eq "";
 
