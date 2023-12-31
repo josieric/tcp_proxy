@@ -125,7 +125,7 @@ if ($#ARGV lt 0 || $#ARGV gt 1) {
   exit 12;
 }
 
-my ($local_host, $local_port) = split ':', shift() if ($#ARGV eq 2);
+my ($local_host, $local_port) = split ':', shift() if ($#ARGV eq 1);
 my ($remote_host, $remote_port) = split ':', shift();
 
 if (! defined $local_port) {
