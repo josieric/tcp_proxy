@@ -142,7 +142,12 @@ sub new_connection {
       print "Connection from $client_ip:$client_port accepted.\n";
       ## Detect client protocol (read 3 bytes from client to detect)
       my $buffer;
+      print("\tBefore read ") if $debug;
+      $client->blocking(0);
       my $read = $client->sysread($buffer, 3);
+      $client->blocking(1);
+      $read=0 if (! defined $read);
+      print("\tAfter read $read\n") if $debug;
       print $client->sockhost.":".$client->sockport ."\t<-\t".$client->peerhost.":".$client->peerport ."\tREAD\t$read\n" if $debug;
       my $action;
       if ($read) {
@@ -161,6 +166,9 @@ sub new_connection {
 	   $action="";
            print("\tProtocol is not SSL & not SSH !! ");
 	 }
+      }
+      else {
+           print("\tNoread $read ") if $debug;
       }
       my $remote;
       if ($sslbg) {
